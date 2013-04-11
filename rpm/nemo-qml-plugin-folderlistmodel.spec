@@ -18,16 +18,11 @@ Source0:    %{name}-%{version}.tar.bz2
 Source100:  nemo-qml-plugin-folderlistmodel.yaml
 BuildRequires:  pkgconfig(QtCore) >= 4.7.0
 BuildRequires:  pkgconfig(QtDeclarative)
+Provides:   nemo-qml-plugins-folderlistmodel > 0.3.5
+Obsoletes:   nemo-qml-plugins-folderlistmodel <= 0.3.5
 
 %description
 %{summary}.
-
-%package folderlistmodel
-Summary:    Folder list model for QML applications
-Group:      System/Libraries
-
-%description folderlistmodel
-A model providing a view of the filesystem for QML applications
 
 
 %prep
@@ -57,9 +52,9 @@ rm -rf %{buildroot}
 # << install post
 
 
-%files folderlistmodel
+%files
 %defattr(-,root,root,-)
 %{_libdir}/qt4/imports/org/nemomobile/folderlistmodel/libnemofolderlistmodel.so
 %{_libdir}/qt4/imports/org/nemomobile/folderlistmodel/qmldir
-# >> files folderlistmodel
-# << files folderlistmodel
+# >> files
+# << files
