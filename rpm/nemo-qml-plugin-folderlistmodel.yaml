@@ -1,0 +1,26 @@
+Name: nemo-qml-plugin-folderlistmodel
+Summary: Folder list model plugin for Nemo Mobile
+URL: https://github.com/nemomobile/nemo-qml-plugin-folderlistmodel
+Group: System/Libraries
+Description: "%{summary}."
+Version: 0.0.0
+Release: 1
+Sources:
+    - "%{name}-%{version}.tar.bz2"
+License: BSD
+Configure: none
+Builder: qmake
+NoFiles: true
+
+PkgConfigBR:
+    - QtCore >= 4.7.0
+    - QtDeclarative
+
+SubPackages:
+    - Name: folderlistmodel
+      Summary: Folder list model for QML applications
+      Group: System/Libraries
+      Description: A model providing a view of the filesystem for QML applications
+      Files:
+          - "%{_libdir}/qt4/imports/org/nemomobile/folderlistmodel/libnemofolderlistmodel.so"
+          - "%{_libdir}/qt4/imports/org/nemomobile/folderlistmodel/qmldir"
