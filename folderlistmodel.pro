@@ -25,4 +25,3 @@ HEADERS += plugin.h \
            iorequestworker.h \
            ioworkerthread.h
 
-include(../plugin.pri)
