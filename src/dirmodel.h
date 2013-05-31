@@ -36,13 +36,17 @@
 #include <QFileInfo>
 #include <QVector>
 #include <QStringList>
+#include <QDir>
 
 #include "iorequest.h"
+
+class FileSystemAction;
+typedef bool  (*CompareFunction)(const QFileInfo &a, const QFileInfo &b);
 
 class DirModel : public QAbstractListModel
 {
     Q_OBJECT
-
+public:
     enum Roles {
         FileNameRole = Qt::UserRole,
         CreationDateRole,
@@ -58,20 +62,20 @@ class DirModel : public QAbstractListModel
     };
 
 public:
-    DirModel(QObject *parent = 0);
+    explicit DirModel(QObject *parent = 0);
+    ~DirModel();
 
-    int rowCount(const QModelIndex &index) const
+    int rowCount(const QModelIndex &index = QModelIndex()) const
     {
         if (index.parent() != QModelIndex())
             return 0;
-
         return mDirectoryContents.count();
     }
 
     // TODO: this won't be safe if the model can change under the holder of the row
     Q_INVOKABLE QVariant data(int row, const QByteArray &stringRole) const;
 
-    QVariant data(const QModelIndex &index, int role) const;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
 
     Q_INVOKABLE void refresh()
     {
@@ -79,18 +83,12 @@ public:
         setPath(path());
     }
 
-    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged);
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     inline QString path() const { return mCurrentDir; }
-
-    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged);
-    QString parentPath() const;
-
-    Q_INVOKABLE QString homePath() const;
-
-    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged);
-    bool awaitingResults() const;
-
     void setPath(const QString &pathName);
+
+    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
+    bool awaitingResults() const;
 
     Q_INVOKABLE void rm(const QStringList &paths);
 
@@ -100,7 +98,6 @@ public:
 
     Q_PROPERTY(bool showDirectories READ showDirectories WRITE setShowDirectories NOTIFY showDirectoriesChanged)
     bool showDirectories() const;
-    void setShowDirectories(bool showDirectories);
 
     Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
     QStringList nameFilters() const;
@@ -109,16 +106,16 @@ public:
 public slots:
     void onItemsAdded(const QVector<QFileInfo> &newFiles);
     void onResultsFetched();
+
 signals:
     void awaitingResultsChanged();
     void nameFiltersChanged();
     void showDirectoriesChanged();
-    void pathChanged();
+    void pathChanged(const QString& newPath);
     void error(const QString &errorTitle, const QString &errorMessage);
 
 private:
     QHash<int, QByteArray> buildRoleNames() const;
-
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     // In Qt5, the roleNames() is virtual and will work just fine. On qt4 setRoleNames must be used with buildRoleNames.
     QHash<int, QByteArray> roleNames() const;
@@ -129,6 +126,202 @@ private:
     bool mAwaitingResults;
     QString mCurrentDir;
     QVector<QFileInfo> mDirectoryContents;
+
+public:
+    //[0] new stuff Ubuntu File Manager
+#if defined(REGRESSION_TEST_FOLDERLISTMODEL)
+    //make this work with tables
+    virtual int columnCount(const QModelIndex &) const
+    {
+        return IsExecutableRole - FileNameRole + 1;
+    }
+    virtual QVariant  headerData(int section, Qt::Orientation orientation, int role) const;
+#endif
+
+    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged)
+    QString parentPath() const;
+
+    Q_PROPERTY(bool showHiddenFiles READ getShowHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
+    bool getShowHiddenFiles() const;
+
+    Q_ENUMS(SortBy)
+    enum SortBy
+    {
+        SortByName,
+        SortByDate
+    };
+    Q_PROPERTY(SortBy sortBy READ getSortBy WRITE setSortBy NOTIFY sortByChanged)
+    SortBy getSortBy() const;
+
+    Q_ENUMS(SortOrder)
+    enum SortOrder
+    {
+        SortAscending   = Qt::AscendingOrder,
+        SortDescending = Qt::DescendingOrder
+    };
+    Q_PROPERTY(SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY sortOrderChanged)
+    SortOrder getSortOrder() const;
+
+    Q_PROPERTY(int clipboardUrlsCounter READ getClipboardUrlsCounter NOTIFY clipboardChanged)
+    int getClipboardUrlsCounter() const;
+
+    Q_INVOKABLE QString homePath() const;
+
+    /*!
+     *    \brief Tries to make the directory pointed by row as the current to be browsed
+     *    \return true if row points to a directory and the directory is readble, false otherwise
+     */
+    Q_INVOKABLE  bool cdIntoIndex(int row);
+
+    Q_INVOKABLE  bool cdIntoPath(const QString& filename);
+    /*!
+     * \brief copyIndex() puts the item pointed by \a row (dir or file) into the clipboard
+     * \param row points to the item file or directory
+     */
+    Q_INVOKABLE void  copyIndex(int row);
+
+    /*!
+     *  \brief copyPaths(const QStringList& urls) several items (dirs or files) into the clipboard
+     *  \param items  fullpathnames or names only
+     */
+    Q_INVOKABLE void  copyPaths(const QStringList& items);
+
+    /*!
+     * \brief cutIndex() puts the item into the clipboard as \ref copy(),
+     *        mark the item to be removed after \ref paste()
+     * \param row points to the item file or directory
+     */
+    Q_INVOKABLE void  cutIndex(int row);
+
+    /*!
+     *  \brief cut() puts several items (dirs or files) into the clipboard as \ref copy(),
+     *         mark the item to be removed after \ref paste()
+     *   \param items  fullpathnames or names only
+     */
+    Q_INVOKABLE void  cutPaths(const QStringList& items);
+
+    /*!
+     * \brief removeIndex();  remove a item file or directory
+     *
+     * I gets the item indicated by \row and calls \ref rm()
+     *
+     * \param row points to the item to b e removed
+     * \return true if it was possible to remove the item
+     */
+    Q_INVOKABLE void removeIndex(int row);
+
+    /*!
+     *  Just calls \ref rm()
+     */
+    Q_INVOKABLE void removePaths(const QStringList& items);
+
+    /*!
+     *  Tries to open a file using a suitable application, if the index points to a directory
+     *  it goes into it using \ref cdIntoIndex() or \ref cdIntoPath()
+     *
+     *  \note Qt uses Qt QDesktopServices::openUrl()
+     */
+
+    Q_INVOKABLE bool  openIndex(int row);
+    /*!
+     *  Same as \ref openIndex() but using a file name instead of index
+     *
+     *  \sa \ref cdIntoPath()
+     */
+    Q_INVOKABLE bool  openPath(const QString& filename);
+
+public slots:
+    /*!
+     * \brief goHome() goes to user home dir
+     *  Go to user home dir, we may have a tab for places or something like that
+     */
+    void  goHome();
+
+    /*!
+     * \brief cdUp() sets the parent directory as current directory
+     *
+     *  It can work as a back function if there is no user input path
+     * \return true if it was possible to change to parent dir, otherwise false
+     */
+    bool  cdUp();
+
+    /*!
+     * \brief paste() copy item(s) from \ref copy() and \ref paste() into the current directory
+     *
+     *  If the operation was \ref cut(), then remove the original item
+     */
+    void paste();
+
+    /*!
+     * \brief cancelAction() any copy/cut/remove can be cancelled
+     */
+    void cancelAction();    
+
+    void setShowDirectories(bool showDirectories);
+    void setShowHiddenFiles(bool show);
+    void setSortBy(SortBy field);
+    void setSortOrder(SortOrder order);
+
+    void toggleShowDirectories();
+    void toggleShowHiddenFiles();
+    void toggleSortOrder();
+    void toggleSortBy();
+
+signals:
+    /*!
+     * \brief insertedItem()
+     *
+     *  It happens when a new file is inserted in an existent view,
+     *  for example from  \ref mkdir() or \ref paste()
+     *
+     *  It can be used to make the new row visible to the user doing a scroll to
+     */
+    void  insertedRow(int row);
+    /*!
+     * \brief progress()
+     *  Sends status about recursive and multi-items remove/move/copy
+     *
+     * \param curItem     current item being handled
+     * \param totalItems  total of items including recursive directories content
+     * \param percent     a percent done
+     */
+    void     progress(int curItem, int totalItems, int percent);
+
+    void     showHiddenFilesChanged();
+    void     sortByChanged();
+    void     sortOrderChanged();
+
+    void     clipboardChanged();
+
+private slots:
+    void onItemRemoved(const QString&);
+    void onItemRemoved(const QFileInfo&);
+    void onItemAdded(const QString&);
+    void onItemAdded(const QFileInfo&);
+
+private:
+    int           addItem(const QFileInfo& fi);
+    void          setCompareAndReorder();
+    int           rowOfItem(const QFileInfo& fi);
+    QDir::Filter  currentDirFilter()  const;
+    QString       dirItems(const QFileInfo& fi) const;
+    bool          cdInto(const QFileInfo& fi);
+    bool          openItem(const QFileInfo& fi);
+
+private:
+    bool               mShowHiddenFiles;
+    SortBy             mSortBy;
+    SortOrder          mSortOrder;
+    CompareFunction    mCompareFunction;
+
+#if defined(REGRESSION_TEST_FOLDERLISTMODEL) //used in Unit/Regression tests
+public:
+#else
+private:
+#endif
+    FileSystemAction  *  m_fsAction;  //!< it does file system recursive remove/copy/move
+    QString fileSize(qint64 size)  const;
+//[0]
 };
 
 

@@ -41,12 +41,12 @@ NemoFolderListModelPlugin::~NemoFolderListModelPlugin() { }
 void NemoFolderListModelPlugin::initializeEngine(QmlEngine *engine, const char *uri)
 {
     Q_UNUSED(engine)
-    Q_ASSERT(uri == QLatin1String("org.nemomobile.folderlistmodel"));
+    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
 }
 
 void NemoFolderListModelPlugin::registerTypes(const char *uri)
 {
-    Q_ASSERT(uri == QLatin1String("org.nemomobile.folderlistmodel"));
+    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
     qRegisterMetaType<QVector<QFileInfo> >();
     qmlRegisterType<DirModel>(uri, 1, 0, "FolderListModel");
 }

@@ -29,11 +29,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
  */
 
-#include <QMutexLocker>
-#include <QDebug>
-
 #include "iorequestworker.h"
 #include "iorequest.h"
+
+#include <QMutexLocker>
+#include <QDebug>
 
 /*!
   Lives on an IOWorkerThread.
@@ -85,7 +85,9 @@ void IORequestWorker::run()
 
 void IORequestWorker::exit()
 {
+#if DEBUG_MESSAGES
     qDebug() << Q_FUNC_INFO << "Quitting";
+#endif
     QMutexLocker lock(&mMutex);
     mTimeToQuit = true;
     mWaitCondition.wakeOne();
