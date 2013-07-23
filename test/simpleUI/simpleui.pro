@@ -8,12 +8,12 @@ QT       += core gui
 
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-   QT += widgets
+   QT += widgets quick
 }
 else {
    include(../regression/mimetypes/mimetypes-src.pri)
 }
-
+   
 TEMPLATE = app
 
 DEFINES += REGRESSION_TEST_FOLDERLISTMODEL
@@ -29,7 +29,7 @@ include (../../src/folderlistmodel.pri)
 
 #DEFINES += DEBUG_REMOVE
 
-DEFINES += SIMULATE_LONG_ACTION
+DEFINES += SIMULATE_LONG_ACTION DEBUG_EXT_FS_WATCHER
 
 
 

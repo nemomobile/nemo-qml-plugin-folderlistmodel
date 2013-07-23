@@ -37,11 +37,20 @@
 #include <QVector>
 #include <QStringList>
 #include <QDir>
+#include <QDateTime>
 
 #include "iorequest.h"
+#include "filecompare.h"
 
 class FileSystemAction;
-typedef bool  (*CompareFunction)(const QFileInfo &a, const QFileInfo &b);
+
+/*!
+ *  When the External File System Wathcer is enabled,
+ *  this is the interval used to check if there has been any change in the current path
+ *
+ *  \sa setEnabledExternalFSWatcher()
+ */
+#define EX_FS_WATCHER_TIMER_INTERVAL   3100
 
 class DirModel : public QAbstractListModel
 {
@@ -58,7 +67,15 @@ public:
         IsFileRole,
         IsReadableRole,
         IsWritableRole,
-        IsExecutableRole
+        IsExecutableRole,
+        TrackTitleRole,
+        TrackArtistRole,
+        TrackAlbumRole,
+        TrackYearRole,
+        TrackNumberRole,
+        TrackGenreRole,
+        TrackLengthRole,
+        TrackCoverRole
     };
 
 public:
@@ -87,6 +104,21 @@ public:
     inline QString path() const { return mCurrentDir; }
     void setPath(const QString &pathName);
 
+    Q_PROPERTY(QDateTime pathCreatedDate  READ pathCreatedDate)
+    QDateTime pathCreatedDate() const;
+
+    Q_PROPERTY(QDateTime pathModifiedDate READ  pathModifiedDate)
+    QDateTime   pathModifiedDate() const;
+
+    Q_PROPERTY(QString pathCreatedDateLocaleShort  READ  pathCreatedDateLocaleShort)
+    QString     pathCreatedDateLocaleShort() const;
+
+    Q_PROPERTY(QString  pathModifiedDateLocaleShort READ pathModifiedDateLocaleShort)
+    QString     pathModifiedDateLocaleShort() const;
+
+    Q_PROPERTY(bool pathIsWritable  READ pathIsWritable)
+    bool pathIsWritable() const;
+
     Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
     bool awaitingResults() const;
 
@@ -95,6 +127,15 @@ public:
     Q_INVOKABLE bool rename(int row, const QString &newName);
 
     Q_INVOKABLE void mkdir(const QString &newdir);
+
+    Q_PROPERTY(bool filterDirectories READ filterDirectories WRITE setFilterDirectories NOTIFY filterDirectoriesChanged)
+    bool filterDirectories() const;
+
+    Q_PROPERTY(bool isRecursive READ isRecursive WRITE setIsRecursive NOTIFY isRecursiveChanged)
+    bool isRecursive() const;
+
+    Q_PROPERTY(bool readsMediaMetadata READ readsMediaMetadata WRITE setReadsMediaMetadata NOTIFY readsMediaMetadataChanged)
+    bool readsMediaMetadata() const;
 
     Q_PROPERTY(bool showDirectories READ showDirectories WRITE setShowDirectories NOTIFY showDirectoriesChanged)
     bool showDirectories() const;
@@ -110,6 +151,9 @@ public slots:
 signals:
     void awaitingResultsChanged();
     void nameFiltersChanged();
+    void filterDirectoriesChanged();
+    void isRecursiveChanged();
+    void readsMediaMetadataChanged();
     void showDirectoriesChanged();
     void pathChanged(const QString& newPath);
     void error(const QString &errorTitle, const QString &errorMessage);
@@ -122,8 +166,11 @@ private:
 #endif
 
     QStringList mNameFilters;
+    bool mFilterDirectories;
     bool mShowDirectories;
     bool mAwaitingResults;
+    bool mIsRecursive;
+    bool mReadsMediaMetadata;
     QString mCurrentDir;
     QVector<QFileInfo> mDirectoryContents;
 
@@ -131,8 +178,9 @@ public:
     //[0] new stuff Ubuntu File Manager
 #if defined(REGRESSION_TEST_FOLDERLISTMODEL)
     //make this work with tables
-    virtual int columnCount(const QModelIndex &) const
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const
     {
+        Q_UNUSED(parent);
         return IsExecutableRole - FileNameRole + 1;
     }
     virtual QVariant  headerData(int section, Qt::Orientation orientation, int role) const;
@@ -164,6 +212,9 @@ public:
 
     Q_PROPERTY(int clipboardUrlsCounter READ getClipboardUrlsCounter NOTIFY clipboardChanged)
     int getClipboardUrlsCounter() const;
+
+    Q_PROPERTY(bool enableExternalFSWatcher READ getEnabledExternalFSWatcher WRITE setEnabledExternalFSWatcher)
+    bool  getEnabledExternalFSWatcher() const;
 
     Q_INVOKABLE QString homePath() const;
 
@@ -221,14 +272,22 @@ public:
      *
      *  \note Qt uses Qt QDesktopServices::openUrl()
      */
-
     Q_INVOKABLE bool  openIndex(int row);
+
     /*!
      *  Same as \ref openIndex() but using a file name instead of index
+     *
+     *  It allows to open directories and files using absoulte paths
      *
      *  \sa \ref cdIntoPath()
      */
     Q_INVOKABLE bool  openPath(const QString& filename);
+
+    // some helper functions that can be useful to other QML applications than File Manager
+    Q_INVOKABLE  bool  existsDir(const QString&  folderName) const;
+    Q_INVOKABLE  bool  canReadDir(const QString& folderName) const;
+    Q_INVOKABLE  bool  existsFile(const QString& fileName)   const;
+    Q_INVOKABLE  bool  canReadFile(const QString& fileName)  const;
 
 public slots:
     /*!
@@ -257,10 +316,15 @@ public slots:
      */
     void cancelAction();    
 
+    void setIsRecursive(bool isRecursive);
+    void setReadsMediaMetadata(bool readsMediaMetadata);
+    void setFilterDirectories(bool filterDirectories);
     void setShowDirectories(bool showDirectories);
     void setShowHiddenFiles(bool show);
     void setSortBy(SortBy field);
     void setSortOrder(SortOrder order);
+    void setEnabledExternalFSWatcher(bool enable);
+
 
     void toggleShowDirectories();
     void toggleShowHiddenFiles();
@@ -307,12 +371,32 @@ private:
     QString       dirItems(const QFileInfo& fi) const;
     bool          cdInto(const QFileInfo& fi);
     bool          openItem(const QFileInfo& fi);
+    DirListWorker * createWorkerRequest(IORequest::RequestType requestType,
+                                                  const QString& pathName);
+    bool          canReadDir(const QFileInfo& d)   const;
+    bool          canReadFile(const QFileInfo& f)  const;
+    QFileInfo     setParentIfRelative(const QString &fileOrDir) const;
+
+private:
+    void          startExternalFsWatcher();
+    void          stoptExternalFsWatcher();
+private slots:
+    void          onFetchingContents(QDateTime);
+    void          onItemAddedOutsideFm(const QFileInfo&fi);
+    void          onItemRemovedOutSideFm(const QFileInfo&);
+    void          onItemChangedOutSideFm(const QFileInfo&fi);
+    void          onExternalFsWatcherFinihed();
+protected:
+   virtual void   timerEvent(QTimerEvent *);
 
 private:
     bool               mShowHiddenFiles;
     SortBy             mSortBy;
     SortOrder          mSortOrder;
     CompareFunction    mCompareFunction;
+    int                mExternalFSWatcherTimer;
+    bool               mEnableExternalFSWatcher;
+    QDateTime          mLastModifiedCurrentPath;
 
 #if defined(REGRESSION_TEST_FOLDERLISTMODEL) //used in Unit/Regression tests
 public:

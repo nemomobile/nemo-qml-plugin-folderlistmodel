@@ -52,6 +52,9 @@ public:
     void exit();
 
 private:
+    void  removeAutoRefreshThread(int toRemoveCounter);
+
+private:
     QMutex mMutex;
     QWaitCondition mWaitCondition;
     QList<IORequest *> mRequests;

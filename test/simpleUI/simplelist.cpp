@@ -29,6 +29,7 @@
 #include <QDebug>
 #include <QProgressBar>
 #include <QMessageBox>
+#include <QTimer>
 
 SimpleList::SimpleList(QWidget *parent) :
     QWidget(parent),
@@ -41,6 +42,7 @@ SimpleList::SimpleList(QWidget *parent) :
     m_model = new DirModel(this);
 
     qRegisterMetaType< QVector<QFileInfo> > ("QVector<QFileInfo>");
+    qRegisterMetaType<QFileInfo>("QFileInfo");
 
     ui->tableView->setModel(m_model);   
 
@@ -65,8 +67,15 @@ SimpleList::SimpleList(QWidget *parent) :
     connect(ui->pushButtonPaste,  SIGNAL(clicked()),  this, SLOT(onPaste()));
     connect(ui->pushButtonRename, SIGNAL(clicked()),  this, SLOT(onRename()));
 
-    connect(ui->checkBoxShowDirs, SIGNAL(clicked(bool)), this, SLOT(onShowDirs(bool)));
-    connect(ui->checkBoxShowHidden, SIGNAL(clicked(bool)), this, SLOT(onShowHidden(bool)));
+    connect(ui->checkBoxShowDirs,    SIGNAL(clicked(bool)), this, SLOT(onShowDirs(bool)));
+    connect(ui->checkBoxShowHidden,  SIGNAL(clicked(bool)), this, SLOT(onShowHidden(bool)));
+    connect(ui->checkBoxExtFsWatcher, SIGNAL(toggled(bool)),this, SLOT(onExtFsWatcherEnabled(bool)));
+
+    connect(ui->pushButtonOpen,   SIGNAL(clicked()),
+            this,                 SLOT(onOpen()));
+
+    connect(ui->lineEditOpen,   SIGNAL(returnPressed()),
+            this,                 SLOT(onOpen()));
 
     ui->checkBoxShowDirs->setChecked( m_model->showDirectories() );
 
@@ -92,7 +101,9 @@ SimpleList::SimpleList(QWidget *parent) :
     m_pbar->setMaximum(100);
     m_pbar->setMinimum(0);
 
+    ui->checkBoxExtFsWatcher->click();
     m_model->goHome();
+
     clipboardChanged();
 }
 
@@ -195,14 +206,14 @@ void SimpleList::setSort(int col, Qt::SortOrder order)
 
 void SimpleList::clipboardChanged()
 {   
-    ui->lcdNumber->display(m_model->getClipboardUrlsCounter());
+    ui->clipboardNumber->setText( QString::number(m_model->getClipboardUrlsCounter()));
 }
 
 void SimpleList::progress(int cur, int total, int percent)
 {
     QString p;
     m_pbar->setValue(percent);
-    if (cur == 0)
+    if (cur == 0 && percent == 0)
     {
         m_pbar->reset();
         m_pbar->show();
@@ -210,10 +221,10 @@ void SimpleList::progress(int cur, int total, int percent)
     else
         if (percent == 100)
         {
-            m_pbar->hide();
+            QTimer::singleShot(200, m_pbar, SLOT(hide()));
         }
     p.sprintf("progress(cur=%d, total=%d, percent=%d)", cur,total,percent);
-    qDebug() << p;
+  //  qDebug() << p;
 }
 
 
@@ -253,4 +264,19 @@ void SimpleList::pathChanged(QString path)
 void SimpleList::resizeColumnForName(int)
 {
     ui->tableView->resizeColumnToContents(0);
+}
+
+
+void SimpleList::onOpen()
+{
+    if ( ! m_model->openPath(ui->lineEditOpen->text()) )
+    {
+          QMessageBox::critical(this, "DirModel::openIndex() failed to open" , ui->lineEditOpen->text());
+    }
+}
+
+
+void SimpleList::onExtFsWatcherEnabled(bool enable)
+{
+    m_model->setEnabledExternalFSWatcher(enable);
 }

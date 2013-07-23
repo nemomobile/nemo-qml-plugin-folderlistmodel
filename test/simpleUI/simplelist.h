@@ -67,6 +67,8 @@ private slots:
     void   error(QString title, QString message);
     void   pathChanged(QString path);
     void   resizeColumnForName(int);
+    void   onOpen();
+    void   onExtFsWatcherEnabled(bool);
 };
 
 #endif // SIMPLELIST_H

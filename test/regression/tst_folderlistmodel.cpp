@@ -3,6 +3,15 @@
 #include "tempfiles.h"
 #include <stdio.h>
 
+#ifndef DO_NOT_USE_TAG_LIB
+#include <taglib/attachedpictureframe.h>
+#include <taglib/id3v2tag.h>
+#include <taglib/fileref.h>
+#include <taglib/mpegfile.h>
+#include <taglib/tag.h>
+#include <taglib/audioproperties.h>
+#endif
+
 #include <QApplication>
 #include <QtCore/QString>
 #include <QtTest/QtTest>
@@ -16,6 +25,7 @@
 #include <QMimeType>
 #include <QCryptographicHash>
 #include <QDesktopServices>
+#include <QFile>
 
 //files to generate
 #include "testonly_pdf.h"
@@ -24,7 +34,7 @@
 #include "media_xspf.h"
 
 #define TIME_TO_PROCESS       2300
-#define TIME_TO_REFRESH_DIR   80
+#define TIME_TO_REFRESH_DIR   90
 
 #if QT_VERSION  >= 0x050000
 #define  QSKIP_ALL_TESTS(statement)   QSKIP(statement)
@@ -32,6 +42,9 @@
 #define  QSKIP_ALL_TESTS(statement)   QSKIP(statement,SkipAll)
 #endif
 
+#if  QT_VERSION < 0x050000
+# define QFileDevice   QFile
+#endif
 
 QByteArray md5FromIcon(const QIcon& icon);
 QString createFileInTempDir(const QString& name, const char *content, qint64 size);
@@ -49,6 +62,7 @@ protected slots:
     void slotFileRemoved(const QString& s)   {m_filesRemoved.append(s); }
     void slotFileAdded(const QFileInfo& f)   {m_filesAdded.append(f.absoluteFilePath()); }
     void slotFileRemoved(const QFileInfo& f) {m_filesRemoved.append(f.absoluteFilePath()); }
+    void slotPathChamged(QString path)       { m_currentPath = path;}
     void progress(int, int, int);
     void cancel(int index, int, int percent);
     void slotclipboardChanged();
@@ -83,6 +97,14 @@ private Q_SLOTS:
     void  modelCopyAndPasteInTheSamePlace();
     void  getThemeIcons();
     void  fileIconProvider();
+#ifndef DO_NOT_USE_TAG_LIB
+    void  verifyMP3Metadata();
+#endif
+    void  openPathAbsouluteAndRelative();
+    void  existsDirAnCanReadDir();
+    void  existsFileAndCanReadFile();
+    void  pathProperties();
+    void  watchExternalChanges();
 
     //define TEST_OPENFILES to test QDesktopServices::openUrl() for some files
 #if defined(TEST_OPENFILES)
@@ -129,6 +151,7 @@ private:
     bool           m_receivedErrorSignal;
     QHash<QByteArray, QString>  m_md5IconsTable;
     QFileIconProvider           m_provider;
+    QString        m_currentPath;
 
 };
 
@@ -322,6 +345,7 @@ void TestDirModel::cleanModels()
 void TestDirModel::initTestCase()
 {
    qRegisterMetaType<QVector<QFileInfo> >("QVector<QFileInfo>");
+   qRegisterMetaType<QFileInfo>("QFileInfo");
 }
 
 
@@ -730,7 +754,7 @@ void TestDirModel::modelTestFileSize()
 
      QCOMPARE(m_dirModel_01->fileSize(0),      QString("0 Bytes"));
      QCOMPARE(m_dirModel_01->fileSize(1023),   QString("1023 Bytes"));
-     QCOMPARE(m_dirModel_01->fileSize(1024),   QString("1.0 KB"));
+     QCOMPARE(m_dirModel_01->fileSize(1024),   QString("1.0 kB"));
      QCOMPARE(m_dirModel_01->fileSize(1000*1000),
               QString("1.0 MB"));
      QCOMPARE(m_dirModel_01->fileSize(1000*1000*1000),
@@ -878,6 +902,7 @@ void TestDirModel::modelCopyFileAndDirectoryLinks()
 void TestDirModel::modelCopyAndPasteInTheSamePlace()
 {
     QString orig("modelCopyAndPasteInTheSamePlace_orig");
+    m_deepDir_01 = new DeepDir (orig,0);  // just to be removed
     const int files_to_create = 4;
 
     TempFiles  files;
@@ -898,6 +923,9 @@ void TestDirModel::modelCopyAndPasteInTheSamePlace()
     m_dirModel_01->setPath(files.lastPath());
     connect(m_dirModel_01, SIGNAL(error(QString,QString)),
             this,          SLOT(slotError(QString,QString)));
+
+
+
 
     QTest::qWait(TIME_TO_REFRESH_DIR);
     QCOMPARE(m_dirModel_01->rowCount(), files_to_create);
@@ -1147,6 +1175,251 @@ void TestDirModel::modelCutPasteIntoExistentItems()
 }
 
 
+void TestDirModel::openPathAbsouluteAndRelative()
+{
+    QString orig("openPathAbsouluteAndRelative");
+    m_deepDir_01  = new DeepDir(orig, 1);
+    m_dirModel_01  = new DirModel();
+    connect(m_dirModel_01,  SIGNAL(error(QString,QString)),
+            this,           SLOT(slotError(QString,QString)));
+
+    connect(m_dirModel_01, SIGNAL(pathChanged(QString)),
+            this,          SLOT(slotPathChamged(QString)));
+
+    m_currentPath.clear();
+    bool ret = m_dirModel_01->openPath(QLatin1String("_ItDoesNotExist_"));
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+
+    QCOMPARE(ret,                        false);
+    QCOMPARE(m_currentPath.isEmpty(),    true);
+
+    ret = m_dirModel_01->openPath(m_deepDir_01->path());
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+    QCOMPARE(ret,                        true);
+    QCOMPARE(m_currentPath,              m_deepDir_01->path());
+    QCOMPARE(m_dirModel_01->rowCount(), 1);
+
+    ret = m_dirModel_01->openPath(QLatin1String(".."));
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+    QCOMPARE(ret,                        true);
+    QCOMPARE(m_currentPath,              QDir::tempPath());
+
+    ret = m_dirModel_01->openPath(orig);
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+    QCOMPARE(ret,                        true);
+    QCOMPARE(m_currentPath,              m_deepDir_01->path());
+}
+
+
+void TestDirModel::existsDirAnCanReadDir()
+{
+    QString orig("existsDirAnCanReadDir");
+    m_deepDir_01  = new DeepDir(orig, 1);
+    m_dirModel_01  = new DirModel();
+
+    connect(m_dirModel_01,  SIGNAL(error(QString,QString)),
+            this,           SLOT(slotError(QString,QString)));
+
+    connect(m_dirModel_01, SIGNAL(pathChanged(QString)),
+            this,          SLOT(slotPathChamged(QString)));
+
+    m_currentPath.clear();
+    m_dirModel_01->goHome();
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+
+    //test absoulute path
+    QCOMPARE(m_dirModel_01->existsDir(QDir::tempPath()),  true);
+    QCOMPARE(m_dirModel_01->canReadDir(QDir::tempPath()), true);
+
+    //relative does not exist
+    QString relativeDoesNoEist("__IT_May_Not_Exist_in_Home__HAHA");
+    QCOMPARE(m_dirModel_01->existsDir(relativeDoesNoEist), false);
+    QCOMPARE(m_dirModel_01->canReadDir(relativeDoesNoEist), false);
+
+    //relative exists
+    m_dirModel_01->setPath(QDir::tempPath());
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+    QCOMPARE(m_dirModel_01->existsDir(orig),  true);
+    QCOMPARE(m_dirModel_01->canReadDir(orig), true);
+
+    //check permissions from canReadDir()
+    bool ok = QFile::setPermissions(m_deepDir_01->path(),
+                                    QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+    QCOMPARE(ok,                             true);
+    QCOMPARE(m_dirModel_01->existsDir(orig),  true);
+    QCOMPARE(m_dirModel_01->canReadDir(orig), false);
+
+    ok = QFile::setPermissions(m_deepDir_01->path(),
+                               QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner );
+    QCOMPARE(ok,                             true);
+    QCOMPARE(m_dirModel_01->existsDir(orig),  true);
+    QCOMPARE(m_dirModel_01->canReadDir(orig), true);
+    QCOMPARE(m_dirModel_01->existsFile(orig), false);
+}
+
+void TestDirModel::existsFileAndCanReadFile()
+{
+    QString orig("existsFileAndCanReadFile");
+    m_deepDir_01  = new DeepDir(orig, 1);
+    m_dirModel_01  = new DirModel();
+    m_dirModel_01->setPath(m_deepDir_01->path());
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+
+    QString fileName("myFile.txt");
+    QCOMPARE(m_dirModel_01->rowCount(),   1) ;
+    QCOMPARE(m_dirModel_01->existsFile(fileName),  false);
+    QCOMPARE(m_dirModel_01->canReadFile(fileName),  false);
+
+    TempFiles   temp;
+    temp.addSubDirLevel(orig);
+    temp.create(fileName,1);
+    m_dirModel_01->refresh();
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+    QCOMPARE(m_dirModel_01->rowCount(),   2) ;
+
+    // it has a counter in the name like "myFile.txt_00
+    fileName  = temp.lastNameCreated();
+
+    //relative
+    QCOMPARE(m_dirModel_01->existsFile(fileName),   true);
+    QCOMPARE(m_dirModel_01->canReadFile(fileName),  true);
+    QCOMPARE(m_dirModel_01->existsDir(fileName),    false);
+
+    //absolute
+    QCOMPARE(m_dirModel_01->existsFile(temp.lastFileCreated()),   true);
+    QCOMPARE(m_dirModel_01->canReadFile(temp.lastFileCreated()),  true);
+
+    QCOMPARE(m_dirModel_01->existsDir(temp.lastFileCreated()),   false);
+    QCOMPARE(m_dirModel_01->canReadDir(temp.lastFileCreated()),  false);
+
+    bool ok = m_dirModel_01->cdIntoPath( m_deepDir_01->lastLevel());
+    QCOMPARE(ok,              true);
+
+    //relative
+    QString fileIsUp = QLatin1String("..") + QDir::separator() + fileName;
+    QCOMPARE(m_dirModel_01->existsFile(fileIsUp),   true);
+    QCOMPARE(m_dirModel_01->canReadFile(fileIsUp),  true);
+
+    ok = QFile::setPermissions(temp.lastFileCreated(), QFileDevice::WriteOwner);
+    QCOMPARE(ok,              true);
+    QCOMPARE(m_dirModel_01->existsFile(fileIsUp),   true);
+    QCOMPARE(m_dirModel_01->canReadFile(fileIsUp),  false);
+}
+
+
+void TestDirModel::pathProperties()
+{
+    QString orig("pathProperties");
+    m_deepDir_01  = new DeepDir(orig, 0);
+
+    QTest::qWait(1000); // wait one second
+
+    TempFiles temp;
+    temp.addSubDirLevel(orig);
+    temp.create(1);
+
+    m_dirModel_01  = new DirModel();
+    m_dirModel_01->setPath(m_deepDir_01->path());
+    QTest::qWait(TIME_TO_REFRESH_DIR);
+
+    QCOMPARE(m_dirModel_01->pathIsWritable(), true);
+    bool ok =  QFile::setPermissions(m_deepDir_01->path(),
+                                      QFileDevice::ReadOwner | QFileDevice::ExeOwner );
+
+    QCOMPARE(ok,   true);
+    QCOMPARE(m_dirModel_01->pathIsWritable(), false);
+
+    ok =  QFile::setPermissions(m_deepDir_01->path(),
+                                QFileDevice::ReadOwner | QFileDevice::ExeOwner | QFileDevice::WriteOwner);
+
+    QCOMPARE(ok,   true);
+    qWarning("created  %s", m_dirModel_01->pathCreatedDateLocaleShort().toLatin1().constData());
+    qWarning("modified %s", m_dirModel_01->pathModifiedDateLocaleShort().toLatin1().constData());
+
+}
+
+
+/** description:
+ *
+ *  1.  2 file managers in /tmp/watchExternalChanges, m_dirModel_01 and m_dirModel_02
+ *  2.  level_01 will be created under  /tmp/watchExternalChanges,
+ *       so both m_dirModel_01 and m_dirModel_02 start with 1 item
+ *  3. Under /tmp/watchExternalChanges/level_01 10 items "from_level_01.cut_nn" are created
+ *  4  A third File manager is created pointing to /tmp/watchExternalChanges/level_01
+ *  5  A loop is created to move all files under /tmp/watchExternalChanges/level_01
+ *     to /tmp/watchExternalChanges where there are the 2 File Manager instances /tmp/watchExternalChanges/level_01
+ *  inside the loop:
+ *     5.1  files are created using createdOutsideName which is a TemFiles object
+ *     5.2  from m_dirModel_01 a file can be removed depending on the current time
+ */
+void TestDirModel::watchExternalChanges()
+{
+    QString orig("watchExternalChanges");
+    m_deepDir_01  = new DeepDir(orig, 0);
+    TempFiles       tempUnderFirstLevel;
+    tempUnderFirstLevel.addSubDirLevel(orig);
+    tempUnderFirstLevel.addSubDirLevel(QLatin1String("level_01"));
+    const int cut_items = 10;
+    tempUnderFirstLevel.create("from_level_01.cut", cut_items);
+
+    DirModel  thirdFM;
+    thirdFM.setPath(tempUnderFirstLevel.lastPath());
+
+    m_dirModel_01  = new DirModel();
+    m_dirModel_01->setPath(m_deepDir_01->path());
+    m_dirModel_01->setEnabledExternalFSWatcher(true);
+
+    m_dirModel_02  = new DirModel();
+    m_dirModel_02->setPath(m_deepDir_01->path());
+    m_dirModel_02->setEnabledExternalFSWatcher(true);
+
+    QTest::qWait(TIME_TO_REFRESH_DIR+30);
+
+    QCOMPARE(thirdFM.rowCount(),  cut_items);
+    QCOMPARE(m_dirModel_01->rowCount(), 1);
+    QCOMPARE(m_dirModel_02->rowCount(), 1);
+
+    //modification loop
+    int pieceTime = EX_FS_WATCHER_TIMER_INTERVAL/cut_items;
+    int odd = 0;
+    QString    createdOutsideName;
+    TempFiles  createdOutsideFiles;
+    createdOutsideFiles.addSubDirLevel(orig);
+    int        total_removed = 0;
+    for ( int counter = 0; counter < cut_items; ++counter )
+    {
+        thirdFM.cutIndex(0);
+        if ( (odd ^= 1))
+        {
+            m_dirModel_01->paste();
+        }
+        else
+        {
+            m_dirModel_02->paste();
+        }
+        QTest::qWait(TIME_TO_PROCESS);
+        //at least one file is removed
+        if (m_dirModel_01->rowCount() > 1 &&
+            (!total_removed || (QDateTime::currentDateTime().time().msec() % 100) == 0))
+        {
+            //using index 1 because 0 is a directory and the items are being moved up
+            m_dirModel_01->removeIndex(1);
+            ++total_removed;
+        }
+        QTest::qWait(pieceTime + TIME_TO_PROCESS);
+        createdOutsideName.sprintf("created_%d", counter);
+        createdOutsideFiles.create(createdOutsideName);
+    }
+
+    int total_created = 1 + cut_items + createdOutsideFiles.created() - total_removed;
+    QTest::qWait(EX_FS_WATCHER_TIMER_INTERVAL + TIME_TO_PROCESS);
+
+    qWarning("using 2 instances [created outside]=%d, [removed outside]=%d", createdOutsideFiles.created(),  total_removed);
+    QCOMPARE(m_dirModel_01->rowCount(),    total_created);
+    QCOMPARE(m_dirModel_02->rowCount(),    total_created);
+}
+
+
 void TestDirModel::getThemeIcons()
 {
     QStringList mimesToTest = QStringList()
@@ -1257,6 +1530,30 @@ void TestDirModel::fileIconProvider()
     createFileAndCheckIfIconIsExclisive("asx",  media_asx, media_asx_len);
     createFileAndCheckIfIconIsExclisive("xspf", media_xspf, media_xspf_len);
 }
+
+#ifndef DO_NOT_USE_TAG_LIB
+//generate mp3 and verify its metadata
+void TestDirModel::verifyMP3Metadata()
+{
+    QString mp3File = createFileInTempDir("tst_folderlistmodel_for_media_read.mp3",
+                                          reinterpret_cast<const char*>(sound_44100_mp3_data),
+                                          sound_44100_mp3_data_len);
+    QCOMPARE(mp3File.isEmpty(),   false);
+    QUrl mp3Url = QUrl::fromLocalFile(mp3File);
+
+    TagLib::FileRef f(mp3File.toStdString().c_str(), true, TagLib::AudioProperties::Fast);
+    TagLib::Tag *tag = f.tag();
+
+    QCOMPARE(TStringToQString(tag->title()), QString("TitleTest"));
+    QCOMPARE(TStringToQString(tag->artist()), QString("ArtistTest"));
+    QCOMPARE(TStringToQString(tag->album()), QString("AlbumTest"));
+    QCOMPARE(QString::number(tag->year()), QString::number(2013));
+    QCOMPARE(QString::number(tag->track()), QString::number(99));
+    QCOMPARE(TStringToQString(tag->genre()), QString("GenreTest"));
+
+    QFile::remove(mp3File);
+}
+#endif
 
 
 #if defined(TEST_OPENFILES)
