@@ -1,5 +1,7 @@
-/*
- * Copyright (C) 2012 Robin Burchell <robin+nemo@viroteck.net>
+/**************************************************************************
+ *
+ * Copyright 2013 Canonical Ltd.
+ * Copyright 2013 Carlos J Mazieri <carlos.mazieri@gmail.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -27,36 +29,78 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+ *
+ * File: filecompare.cpp
+ * Date: 6/25/2013
  */
 
-#include "plugin.h"
-
-#include <QVector>
+#include "filecompare.h"
 #include <QFileInfo>
+#include <QString>
+#include <QDateTime>
 
 
-NemoFolderListModelPlugin::NemoFolderListModelPlugin() { }
 
-NemoFolderListModelPlugin::~NemoFolderListModelPlugin() { }
-
-void NemoFolderListModelPlugin::initializeEngine(QmlEngine *engine, const char *uri)
+bool fileCompareExists(const QFileInfo &a, const QFileInfo &b)
 {
-    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
+    if (a.isDir() && !b.isDir())
+        return true;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    engine->addImageProvider(QLatin1String("cover-art"), new CoverArtImageProvider);
-    engine->addImageProvider(QLatin1String("cover-art-full"), new CoverArtFullImageProvider);
-#else
-    Q_UNUSED(engine);
+    if (b.isDir() && !a.isDir())
+        return false;
+
+    bool ret = QString::localeAwareCompare(a.absoluteFilePath(), b.absoluteFilePath()) < 0;
+#if DEBUG_MESSAGES
+    qDebug() <<  Q_FUNC_INFO << ret << a.absoluteFilePath() << b.absoluteFilePath();
 #endif
-
+    return ret;
 }
 
-void NemoFolderListModelPlugin::registerTypes(const char *uri)
+
+bool fileCompareAscending(const QFileInfo &a, const QFileInfo &b)
 {
-    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
-    qRegisterMetaType< QVector<QFileInfo> >();
-    qRegisterMetaType<QFileInfo>("QFileInfo");
-    qmlRegisterType<DirModel>(uri, 1, 0, "FolderListModel");
+    if (a.isDir() && !b.isDir())
+        return true;
+
+    if (b.isDir() && !a.isDir())
+        return false;
+
+    return QString::localeAwareCompare(a.fileName(), b.fileName()) < 0;
+}
+
+
+bool fileCompareDescending(const QFileInfo &a, const QFileInfo &b)
+{
+    if (a.isDir() && !b.isDir())
+        return true;
+
+    if (b.isDir() && !a.isDir())
+        return false;
+
+    return QString::localeAwareCompare(a.fileName(), b.fileName()) > 0;
+}
+
+
+bool dateCompareDescending(const QFileInfo &a, const QFileInfo &b)
+{
+    if (a.isDir() && !b.isDir())
+        return true;
+
+    if (b.isDir() && !a.isDir())
+        return false;
+
+    return a.lastModified() > b.lastModified();
+}
+
+
+bool dateCompareAscending(const QFileInfo &a, const QFileInfo &b)
+{
+    if (a.isDir() && !b.isDir())
+        return true;
+
+    if (b.isDir() && !a.isDir())
+        return false;
+
+    return a.lastModified() < b.lastModified();
 }
 

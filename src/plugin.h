@@ -33,7 +33,6 @@
 #define NEMO_QML_PLUGINS_FOLDERLISTMODEL
 
 #include <QtGlobal>
-
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #include <QtDeclarative>
 #include <QDeclarativeEngine>
@@ -64,6 +63,11 @@ typedef QQmlEngine QmlEngine;
 #endif
 
 #include "dirmodel.h"
+#include "imageprovider.h"
+
+
+#define QUOTES(x)  #x
+
 
 class PLUGIN_CLASS_EXPORT NemoFolderListModelPlugin  : public QmlPluginParent
 {

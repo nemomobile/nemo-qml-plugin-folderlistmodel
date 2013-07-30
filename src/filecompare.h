@@ -1,5 +1,7 @@
-/*
- * Copyright (C) 2012 Robin Burchell <robin+nemo@viroteck.net>
+/**************************************************************************
+ *
+ * Copyright 2013 Canonical Ltd.
+ * Copyright 2013 Carlos J Mazieri <carlos.mazieri@gmail.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -27,36 +29,23 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+ *
+ * File: filecompare.h
+ * Date: 6/25/2013
  */
 
-#include "plugin.h"
+#ifndef FILECOMPARE_H
+#define FILECOMPARE_H
 
-#include <QVector>
-#include <QFileInfo>
+class QFileInfo;
 
+typedef bool  (*CompareFunction)(const QFileInfo &a, const QFileInfo &b);
 
-NemoFolderListModelPlugin::NemoFolderListModelPlugin() { }
+bool fileCompareExists(const QFileInfo &a, const QFileInfo &b);
+bool fileCompareAscending(const QFileInfo &a, const QFileInfo &b);
+bool fileCompareDescending(const QFileInfo &a, const QFileInfo &b);
 
-NemoFolderListModelPlugin::~NemoFolderListModelPlugin() { }
+bool dateCompareDescending(const QFileInfo &a, const QFileInfo &b);
+bool dateCompareAscending(const QFileInfo &a, const QFileInfo &b);
 
-void NemoFolderListModelPlugin::initializeEngine(QmlEngine *engine, const char *uri)
-{
-    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    engine->addImageProvider(QLatin1String("cover-art"), new CoverArtImageProvider);
-    engine->addImageProvider(QLatin1String("cover-art-full"), new CoverArtFullImageProvider);
-#else
-    Q_UNUSED(engine);
-#endif
-
-}
-
-void NemoFolderListModelPlugin::registerTypes(const char *uri)
-{
-    Q_ASSERT(uri == QLatin1String(QUOTES(PLUGIN_URI)));
-    qRegisterMetaType< QVector<QFileInfo> >();
-    qRegisterMetaType<QFileInfo>("QFileInfo");
-    qmlRegisterType<DirModel>(uri, 1, 0, "FolderListModel");
-}
-
+#endif // FILECOMPARE_H
