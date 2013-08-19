@@ -4,7 +4,7 @@ PLUGIN_IMPORT_PATH = org/nemomobile/folderlistmodel
 TEMPLATE = lib
 CONFIG += qt plugin hide_symbols
 greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += quick
+    QT += qml
     target.path = $$[QT_INSTALL_QML]/$$PLUGIN_IMPORT_PATH
     qmldir.path +=  $$[QT_INSTALL_QML]/$$$$PLUGIN_IMPORT_PATH
 } else {
