@@ -21,8 +21,12 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QFileIconProvider>
-#include <QMimeDatabase>
+
+#if defined(REGRESSION_TEST_FOLDERLISTMODEL) && QT_VERSION >= 0x050000
 #include <QMimeType>
+#include <QMimeDatabase>
+#endif
+
 #include <QCryptographicHash>
 #include <QDesktopServices>
 #include <QFile>
@@ -100,8 +104,10 @@ private Q_SLOTS:
     void  modelCutAndPaste3Times();
     void  modelCutAndPasteInTheSamePlace();
     void  modelCopyAndPasteToBackupFiles();
-    void  getThemeIcons();
     void  fileIconProvider();
+#if defined(REGRESSION_TEST_FOLDERLISTMODEL) && QT_VERSION >= 0x050000
+    void  getThemeIcons();
+#endif
 #ifndef DO_NOT_USE_TAG_LIB
     void  verifyMP3Metadata();
 #endif
@@ -529,16 +535,20 @@ void TestDirModel::modelRemoveMultiItemsByFullPathname()
     items.append(files.lastPath());
 
     m_dirModel_01 = new DirModel();
+    connect(m_dirModel_01, SIGNAL(progress(int,int,int)),
+            this,          SLOT(progress(int,int,int)));
     m_dirModel_01->setPath(m_deepDir_01->path());
     QTest::qWait(TIME_TO_REFRESH_DIR);
-
     QCOMPARE(m_dirModel_01->rowCount(), itemsToCreate);
+
     m_dirModel_01->rm(items);
+    int steps = m_dirModel_01->getProgressCounter();
     QTest::qWait(500);
 
     QCOMPARE(m_filesRemoved.count() , itemsToCreate);
     QCOMPARE(m_dirModel_01->rowCount(), 0);
     QCOMPARE(files.howManyExist(), 0);
+    QCOMPARE(steps,        m_progressCounter);
 }
 
 
@@ -593,13 +603,16 @@ void TestDirModel::modelCopyDirPasteIntoAnotherModel()
     QCOMPARE(m_dirModel_02->rowCount(),  0);
 
     m_dirModel_01->copyIndex(0);
+    m_visibleProgressMessages = true;
     m_dirModel_02->paste();
+    int steps = m_dirModel_02->getProgressCounter();
     QTest::qWait(TIME_TO_PROCESS);
 
     QCOMPARE(m_dirModel_02->rowCount(),  1);
     QCOMPARE(m_progressPercentDone, 100);   
     QCOMPARE(compareDirectories(m_deepDir_01->path(), m_deepDir_02->path()), true);
     QCOMPARE(m_receivedClipboardChangesSignal,      true);
+    QCOMPARE(steps,          m_progressCounter);
 }
 
 
@@ -651,7 +664,10 @@ void TestDirModel::modelCopyManyItemsPasteIntoAnotherModel()
     allFiles.append(big.fileName());
 
     m_dirModel_01->copyPaths(allFiles);
+    m_visibleProgressMessages = true;
     m_dirModel_02->paste();
+    int steps = m_dirModel_02->m_fsAction->m_curAction->steps;
+
     QTest::qWait(TIME_TO_PROCESS);
 
     QCOMPARE(m_dirModel_02->rowCount(),  itemsCreated);
@@ -659,6 +675,8 @@ void TestDirModel::modelCopyManyItemsPasteIntoAnotherModel()
     QCOMPARE(m_progressPercentDone, 100);
     QCOMPARE(compareDirectories(m_deepDir_01->path(), m_deepDir_02->path()), true);
     QCOMPARE(m_receivedClipboardChangesSignal,   true);
+
+    QCOMPARE(steps,     m_progressCounter);
 }
 
 
@@ -798,6 +816,10 @@ void TestDirModel::modelCutManyItemsPasteIntoAnotherModel()
     QString target("modelCutManyItemsPasteIntoAnotherModel_target");
     m_deepDir_02 = new DeepDir(target, 0);
     m_dirModel_02 = new DirModel();
+    connect(m_dirModel_02, SIGNAL(progress(int,int,int)),
+            this,          SLOT(progress(int,int,int)));
+    connect(m_dirModel_02, SIGNAL(error(QString,QString)),
+            this,          SLOT(slotError(QString,QString)));
     m_dirModel_02->setPath(m_deepDir_02->path());
     QTest::qWait(TIME_TO_REFRESH_DIR);
 
@@ -808,12 +830,15 @@ void TestDirModel::modelCutManyItemsPasteIntoAnotherModel()
     allFiles.append(tempFiles.createdList());
 
     m_dirModel_01->cutPaths(allFiles);
+    m_visibleProgressMessages = true;
     m_dirModel_02->paste();
+    int steps = m_dirModel_02->getProgressCounter();
     QTest::qWait(TIME_TO_PROCESS);
 
     QCOMPARE(m_dirModel_02->rowCount(),  itemsCreated); //pasted into
     QCOMPARE(m_dirModel_01->rowCount(),  0);  //cut from
     QCOMPARE(m_receivedClipboardChangesSignal,  true);
+    QCOMPARE(steps,        m_progressCounter);
 }
 
 void  TestDirModel::fsActionMoveItemsForcingCopyAndThenRemove()
@@ -1604,6 +1629,7 @@ void TestDirModel::watchExternalChanges()
 }
 
 
+#if defined(REGRESSION_TEST_FOLDERLISTMODEL) && QT_VERSION >= 0x050000
 void TestDirModel::getThemeIcons()
 {
     QStringList mimesToTest = QStringList()
@@ -1664,6 +1690,7 @@ void TestDirModel::getThemeIcons()
         md5IconsTable.insert(md5, mimesToTest.at(counter));
     }
 }
+#endif
 
 
 bool TestDirModel::createFileAndCheckIfIconIsExclisive(const QString& termination,
@@ -1723,19 +1750,26 @@ void TestDirModel::verifyMP3Metadata()
                                           reinterpret_cast<const char*>(sound_44100_mp3_data),
                                           sound_44100_mp3_data_len);
     QCOMPARE(mp3File.isEmpty(),   false);
-    QUrl mp3Url = QUrl::fromLocalFile(mp3File);
 
-    TagLib::FileRef f(mp3File.toStdString().c_str(), true, TagLib::AudioProperties::Fast);
-    TagLib::Tag *tag = f.tag();
+    m_dirModel_01 = new DirModel();
+    m_dirModel_01->setReadsMediaMetadata(true);
+    QFileInfo fi(mp3File);
 
-    QCOMPARE(TStringToQString(tag->title()), QString("TitleTest"));
-    QCOMPARE(TStringToQString(tag->artist()), QString("ArtistTest"));
-    QCOMPARE(TStringToQString(tag->album()), QString("AlbumTest"));
-    QCOMPARE(QString::number(tag->year()), QString::number(2013));
-    QCOMPARE(QString::number(tag->track()), QString::number(99));
-    QCOMPARE(TStringToQString(tag->genre()), QString("GenreTest"));
+    QString title  = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackTitleRole).toString();
+    QString artist = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackArtistRole).toString();
+    QString album  = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackAlbumRole).toString();
+    QString year   = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackYearRole).toString();
+    QString track  = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackNumberRole).toString();
+    QString genre  = m_dirModel_01->getAudioMetaData(fi, DirModel::TrackGenreRole).toString();
 
     QFile::remove(mp3File);
+
+    QCOMPARE(title,     QString("TitleTest"));
+    QCOMPARE(artist,    QString("ArtistTest"));
+    QCOMPARE(album,     QString("AlbumTest"));
+    QCOMPARE(year,      QString::number(2013));
+    QCOMPARE(track,     QString::number(99));
+    QCOMPARE(genre,     QString("GenreTest"));
 }
 #endif
 

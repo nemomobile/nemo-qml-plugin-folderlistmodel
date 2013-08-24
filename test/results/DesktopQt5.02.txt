@@ -1,0 +1,151 @@
+********* Start testing of TestDirModel *********
+Config: Using QTest library 5.0.2, Qt 5.0.2
+PASS   : TestDirModel::initTestCase()
+PASS   : TestDirModel::fsActionRemoveSingleFile()
+PASS   : TestDirModel::fsActionRemoveSingleDir()
+PASS   : TestDirModel::fsActionRemoveOneFileOneDir()
+PASS   : TestDirModel::fsActionRemoveTwoFilesTwoDirs()
+PASS   : TestDirModel::modelRemoveRecursiveDirByIndex()
+PASS   : TestDirModel::modelRemoveMultiItemsByFullPathname()
+PASS   : TestDirModel::modelRemoveMultiItemsByName()
+QDEBUG : TestDirModel::modelCopyDirPasteIntoAnotherModel() "progress(cur=0, total=3, percent=0)" 
+QDEBUG : TestDirModel::modelCopyDirPasteIntoAnotherModel() "progress(cur=3, total=3, percent=100)" 
+PASS   : TestDirModel::modelCopyDirPasteIntoAnotherModel()
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=0, total=26, percent=0)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=3, total=26, percent=5)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=5, total=26, percent=10)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=5, total=26, percent=10)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=6, total=26, percent=12)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=7, total=26, percent=14)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=8, total=26, percent=17)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=10, total=26, percent=18)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=15, total=26, percent=22)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=16, total=26, percent=23)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=17, total=26, percent=25)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=18, total=26, percent=27)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=19, total=26, percent=29)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=20, total=26, percent=31)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=21, total=26, percent=34)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=21, total=26, percent=34)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=22, total=26, percent=36)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=22, total=26, percent=36)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=23, total=26, percent=38)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=23, total=26, percent=39)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=24, total=26, percent=41)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=24, total=26, percent=41)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=25, total=26, percent=43)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=25, total=26, percent=44)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=46)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=48)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=50)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=52)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=55)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=57)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=59)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=61)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=63)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=65)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=68)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=70)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=72)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=74)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=76)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=78)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=80)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=83)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=85)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=87)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=89)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=91)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=93)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=96)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=98)" 
+QDEBUG : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel() "progress(cur=26, total=26, percent=100)" 
+PASS   : TestDirModel::modelCopyManyItemsPasteIntoAnotherModel()
+PASS   : TestDirModel::modelCopyTwoEmptyFiles()
+QWARN  : TestDirModel::modelCopyFileAndRemoveBeforePaste() Received Error: [title: File or Directory does not exist] [message: /tmp/modelCopyFileAndRemoveBeforePaste_orig/tempfile_00 does not exist]
+PASS   : TestDirModel::modelCopyFileAndRemoveBeforePaste()
+QDEBUG : TestDirModel::modelCopyPasteFileAndRemoveWhenFirstProgressSignalArrives() removing file "/tmp/modelCopyPasteFileAndRemoveWhenFirstProgressSignalArrives_orig/tempfile_00" ret true 
+QWARN  : TestDirModel::modelCopyPasteFileAndRemoveWhenFirstProgressSignalArrives() Received Error: [title: Could not open file] [message: /tmp/modelCopyPasteFileAndRemoveWhenFirstProgressSignalArrives_orig/tempfile_00]
+PASS   : TestDirModel::modelCopyPasteFileAndRemoveWhenFirstProgressSignalArrives()
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=0, total=11, percent=0)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=1, total=11, percent=9)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=2, total=11, percent=18)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=3, total=11, percent=27)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=4, total=11, percent=36)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=5, total=11, percent=45)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=6, total=11, percent=54)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=7, total=11, percent=63)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=8, total=11, percent=72)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=9, total=11, percent=81)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=10, total=11, percent=90)" 
+QDEBUG : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() "progress(cur=11, total=11, percent=100)" 
+QWARN  : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::modelCutManyItemsPasteIntoAnotherModel() QXcbClipboard: SelectionRequest too old
+PASS   : TestDirModel::modelCutManyItemsPasteIntoAnotherModel()
+PASS   : TestDirModel::fsActionMoveItemsForcingCopyAndThenRemove()
+PASS   : TestDirModel::modelCancelRemoveAction()
+PASS   : TestDirModel::modelTestFileSize()
+PASS   : TestDirModel::modelRemoveDirWithHiddenFilesAndLinks()
+PASS   : TestDirModel::modelCancelCopyAction()
+PASS   : TestDirModel::modelCopyPasteAndPasteAgain()
+QWARN  : TestDirModel::modelCutPasteIntoExistentItems() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::modelCutPasteIntoExistentItems() QXcbClipboard: SelectionRequest too old
+PASS   : TestDirModel::modelCutPasteIntoExistentItems()
+PASS   : TestDirModel::modelCopyFileAndDirectoryLinks()
+PASS   : TestDirModel::modelCopyAndPaste3Times()
+QWARN  : TestDirModel::modelCutAndPaste3Times() QXcbClipboard: SelectionRequest too old
+PASS   : TestDirModel::modelCutAndPaste3Times()
+QWARN  : TestDirModel::modelCutAndPasteInTheSamePlace() Received Error: [title: Cannot paste] [message: origin and destination folder are the same]
+PASS   : TestDirModel::modelCutAndPasteInTheSamePlace()
+PASS   : TestDirModel::modelCopyAndPasteToBackupFiles()
+QWARN  : TestDirModel::fileIconProvider() QFileIconProvider::File or a BAD icon from QFileIconProvide::icon() for  /tmp/tst_folderlistmodel_test.mp3
+QWARN  : TestDirModel::fileIconProvider() QFileIconProvider::File or a BAD icon from QFileIconProvide::icon() for  /tmp/tst_folderlistmodel_test.pdf
+QWARN  : TestDirModel::fileIconProvider() QFileIconProvider::File or a BAD icon from QFileIconProvide::icon() for  /tmp/tst_folderlistmodel_test.asx
+QWARN  : TestDirModel::fileIconProvider() QFileIconProvider::File or a BAD icon from QFileIconProvide::icon() for  /tmp/tst_folderlistmodel_test.xspf
+PASS   : TestDirModel::fileIconProvider()
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type text/plain
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type text/x-c++src
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type text/x-csrc
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type inode/directory
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/msword
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/octet-stream
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/pdf
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/postscript
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/x-bzip-compressed-tar
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/x-executable
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/x-gzip
+QWARN  : TestDirModel::getThemeIcons() GOOD icon using QIcon::fromTheme() for mime type application/x-shellscript
+PASS   : TestDirModel::getThemeIcons()
+PASS   : TestDirModel::verifyMP3Metadata()
+PASS   : TestDirModel::openPathAbsouluteAndRelative()
+PASS   : TestDirModel::existsDirAnCanReadDir()
+PASS   : TestDirModel::existsFileAndCanReadFile()
+QWARN  : TestDirModel::pathProperties() created  8/24/13 3:48 PM
+QWARN  : TestDirModel::pathProperties() modified 8/24/13 3:48 PM
+PASS   : TestDirModel::pathProperties()
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() QXcbClipboard: SelectionRequest too old
+QWARN  : TestDirModel::watchExternalChanges() using 2 instances [created outside]=10, [removed outside]=1
+PASS   : TestDirModel::watchExternalChanges()
+PASS   : TestDirModel::cleanupTestCase()
+Totals: 35 passed, 0 failed, 0 skipped
+********* Finished testing of TestDirModel *********
