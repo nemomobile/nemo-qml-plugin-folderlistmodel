@@ -43,6 +43,8 @@ class DirModel : public QAbstractListModel
 {
     Q_OBJECT
 
+    Q_ENUMS(FilterMode)
+
     enum Roles {
         FileNameRole = Qt::UserRole,
         CreationDateRole,
@@ -58,6 +60,12 @@ class DirModel : public QAbstractListModel
     };
 
 public:
+
+    enum FilterMode {
+        Exclusive,
+        Inclusive
+    };
+
     DirModel(QObject *parent = 0);
 
     int rowCount(const QModelIndex &index) const
@@ -102,6 +110,10 @@ public:
     bool showDirectories() const;
     void setShowDirectories(bool showDirectories);
 
+    Q_PROPERTY(FilterMode filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
+    FilterMode filterMode() const;
+    void setFilterMode(FilterMode mode);
+
     Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
     QStringList nameFilters() const;
     void setNameFilters(const QStringList &nameFilters);
@@ -111,6 +123,7 @@ public slots:
     void onResultsFetched();
 signals:
     void awaitingResultsChanged();
+    void filterModeChanged();
     void nameFiltersChanged();
     void showDirectoriesChanged();
     void pathChanged();
@@ -124,6 +137,7 @@ private:
     QHash<int, QByteArray> roleNames() const;
 #endif
 
+    FilterMode mFilterMode;
     QStringList mNameFilters;
     bool mShowDirectories;
     bool mAwaitingResults;

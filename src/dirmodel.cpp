@@ -94,6 +94,7 @@ private:
 
 DirModel::DirModel(QObject *parent)
     : QAbstractListModel(parent)
+    , mFilterMode(Exclusive)
     , mAwaitingResults(false)
     , mShowDirectories(true)
 {
@@ -281,11 +282,16 @@ void DirModel::onItemsAdded(const QVector<QFileInfo> &newFiles)
         if (!mShowDirectories && fi.isDir())
             continue;
 
-        bool doAdd = true;
+        bool doAdd = (mFilterMode == Exclusive);
+
         foreach (const QString &nameFilter, mNameFilters) {
             // TODO: using QRegExp for wildcard matching is slow
             QRegExp re(nameFilter, Qt::CaseInsensitive, QRegExp::Wildcard);
-            if (!re.exactMatch(fi.fileName())) {
+            bool matched = re.exactMatch(fi.fileName());
+            if (mFilterMode == Inclusive && matched) {
+                doAdd = true;
+                break;
+            } else if (mFilterMode == Exclusive && !matched) {
                 doAdd = false;
                 break;
             }
@@ -394,6 +400,21 @@ void DirModel::setShowDirectories(bool showDirectories)
     mShowDirectories = showDirectories;
     refresh();
     emit showDirectoriesChanged();
+}
+
+DirModel::FilterMode DirModel::filterMode() const
+{
+    return mFilterMode;
+}
+
+void DirModel::setFilterMode(FilterMode mode)
+{
+    if (mFilterMode == mode)
+        return;
+
+    mFilterMode = mode;
+    refresh();
+    emit filterModeChanged();
 }
 
 QStringList DirModel::nameFilters() const
