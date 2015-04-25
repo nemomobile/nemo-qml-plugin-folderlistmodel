@@ -282,15 +282,17 @@ void DirModel::onItemsAdded(const QVector<QFileInfo> &newFiles)
         if (!mShowDirectories && fi.isDir())
             continue;
 
-        bool doAdd = true;
-        if (mFilterMode == Inclusive)
-            doAdd = false;
+        bool doAdd = (mFilterMode == Exclusive);
 
         foreach (const QString &nameFilter, mNameFilters) {
             // TODO: using QRegExp for wildcard matching is slow
             QRegExp re(nameFilter, Qt::CaseInsensitive, QRegExp::Wildcard);
-            if (re.exactMatch(fi.fileName())) {
-                doAdd = !doAdd;
+            bool matched = re.exactMatch(fi.fileName());
+            if (mFilterMode == Inclusive && matched) {
+                doAdd = true;
+                break;
+            } else if (mFilterMode == Exclusive && !matched) {
+                doAdd = false;
                 break;
             }
         }
