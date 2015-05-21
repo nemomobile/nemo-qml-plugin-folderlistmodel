@@ -288,7 +288,7 @@ void DirModel::onItemsAdded(const QVector<QFileInfo> &newFiles)
             // TODO: using QRegExp for wildcard matching is slow
             QRegExp re(nameFilter, Qt::CaseInsensitive, QRegExp::Wildcard);
             bool matched = re.exactMatch(fi.fileName());
-            if (mFilterMode == Inclusive && matched) {
+            if ((mFilterMode == Inclusive && matched) || fi.isDir()) {
                 doAdd = true;
                 break;
             } else if (mFilterMode == Exclusive && !matched) {
