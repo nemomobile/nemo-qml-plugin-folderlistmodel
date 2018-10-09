@@ -34,6 +34,8 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QUrl>
+#include <QMimeType>
+#include <QMimeDatabase>
 
 #include <errno.h>
 #include <string.h>
@@ -100,13 +102,8 @@ DirModel::DirModel(QObject *parent)
 {
     mNameFilters = QStringList() << "*";
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    // There's no setRoleNames in Qt5.
-    setRoleNames(buildRoleNames());
-#endif
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 // roleNames has changed between Qt4 and Qt5. In Qt5 it is a virtual
 // function and setRoleNames should not be used.
 QHash<int, QByteArray> DirModel::roleNames() const
@@ -118,7 +115,6 @@ QHash<int, QByteArray> DirModel::roleNames() const
 
     return roles;
 }
-#endif
 
 QHash<int, QByteArray> DirModel::buildRoleNames() const
 {
@@ -134,6 +130,7 @@ QHash<int, QByteArray> DirModel::buildRoleNames() const
     roles.insert(IsReadableRole, QByteArray("isReadable"));
     roles.insert(IsWritableRole, QByteArray("isWritable"));
     roles.insert(IsExecutableRole, QByteArray("isExecutable"));
+    roles.insert(MimeTypeRole, QByteArray("mimeType"));
 
     // populate reverse mapping
     if (roleMapping.isEmpty()) {
@@ -160,7 +157,7 @@ QVariant DirModel::data(int row, const QByteArray &stringRole) const
 
 QVariant DirModel::data(const QModelIndex &index, int role) const
 {
-    if (role < FileNameRole || role > IsExecutableRole) {
+    if (role < FileNameRole || role >= MaximumRole) {
         qWarning() << Q_FUNC_INFO << "Got an out of range role: " << role;
         return QVariant();
     }
@@ -198,8 +195,9 @@ QVariant DirModel::data(const QModelIndex &index, int role) const
             if (fi.isDir())
                 return "image://theme/icon-m-common-directory";
 
-            if (fileName.endsWith(".jpg", Qt::CaseInsensitive) ||
-                fileName.endsWith(".png", Qt::CaseInsensitive)) {
+            const QString mimeType = QMimeDatabase().mimeTypeForFile(fi).name();
+
+            if (mimeType.startsWith("image/", Qt::CaseInsensitive)) {
                 return "image://nemoThumbnail/" + fi.filePath();
             }
 
@@ -217,6 +215,8 @@ QVariant DirModel::data(const QModelIndex &index, int role) const
             return fi.isWritable();
         case IsExecutableRole:
             return fi.isExecutable();
+        case MimeTypeRole:
+            return QMimeDatabase().mimeTypeForFile(fi).name();
         default:
             // this should not happen, ever
             Q_ASSERT(false);

@@ -56,7 +56,9 @@ class DirModel : public QAbstractListModel
         IsFileRole,
         IsReadableRole,
         IsWritableRole,
-        IsExecutableRole
+        IsExecutableRole,
+        MimeTypeRole,
+        MaximumRole
     };
 
 public:
@@ -87,15 +89,15 @@ public:
         setPath(path());
     }
 
-    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged);
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     inline QString path() const { return mCurrentDir; }
 
-    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged);
+    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged)
     QString parentPath() const;
 
     Q_INVOKABLE QString homePath() const;
 
-    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged);
+    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
     bool awaitingResults() const;
 
     void setPath(const QString &pathName);
@@ -131,11 +133,7 @@ signals:
 
 private:
     QHash<int, QByteArray> buildRoleNames() const;
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-    // In Qt5, the roleNames() is virtual and will work just fine. On qt4 setRoleNames must be used with buildRoleNames.
     QHash<int, QByteArray> roleNames() const;
-#endif
 
     FilterMode mFilterMode;
     QStringList mNameFilters;
