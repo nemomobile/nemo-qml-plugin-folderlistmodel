@@ -34,20 +34,16 @@
 
 #include "plugin.h"
 
-NemoFolderListModelPlugin::NemoFolderListModelPlugin() { }
-
-NemoFolderListModelPlugin::~NemoFolderListModelPlugin() { }
-
-void NemoFolderListModelPlugin::initializeEngine(QmlEngine *engine, const char *uri)
+void NemoFolderListModelPlugin::initializeEngine(QQmlEngine *engine, const char *uri)
 {
     Q_UNUSED(engine)
     Q_ASSERT(uri == QLatin1String("org.nemomobile.folderlistmodel"));
+    qRegisterMetaType<QVector<QFileInfo> >();
 }
 
 void NemoFolderListModelPlugin::registerTypes(const char *uri)
 {
     Q_ASSERT(uri == QLatin1String("org.nemomobile.folderlistmodel"));
-    qRegisterMetaType<QVector<QFileInfo> >();
     qmlRegisterType<DirModel>(uri, 1, 0, "FolderListModel");
 }
 
