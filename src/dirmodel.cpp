@@ -53,24 +53,27 @@ class DirListWorker : public IORequest
 {
     Q_OBJECT
 public:
-    DirListWorker(const QString &pathName)
-        : mPathName(pathName)
+    DirListWorker(const QString &pathName, const bool showHidden = false)
+        : mPathName(pathName),
+          mShowHidden(showHidden)
     { }
 
     void run()
     {
         qDebug() << Q_FUNC_INFO << "Running on: " << QThread::currentThreadId();
 
-        QDir tmpDir = QDir(mPathName);
-        QDirIterator it(tmpDir);
+        QDirIterator it(mPathName, QDir::AllDirs | QDir::Hidden | QDir::NoDotAndDotDot);
         QVector<QFileInfo> directoryContents;
 
         while (it.hasNext()) {
             it.next();
 
-            // skip hidden files
-            if (it.fileName()[0] == QLatin1Char('.'))
+            QString fileName = it.fileName();
+
+            if (fileName[0] == QLatin1Char('.') && !mShowHidden) {
+                qDebug() << "Skip" << fileName;
                 continue;
+            }
 
             directoryContents.append(it.fileInfo());
             if (directoryContents.count() >= 50) {
@@ -92,13 +95,15 @@ signals:
 
 private:
     QString mPathName;
+    bool mShowHidden;
 };
 
 DirModel::DirModel(QObject *parent)
     : QAbstractListModel(parent)
     , mFilterMode(Exclusive)
-    , mAwaitingResults(false)
     , mShowDirectories(true)
+    , mAwaitingResults(false)
+    , mShowHiddenFiles(false)
 {
     mNameFilters = QStringList() << "*";
 
@@ -176,7 +181,7 @@ QVariant DirModel::data(const QModelIndex &index, int role) const
         case FileNameRole:
             return fi.fileName();
         case CreationDateRole:
-            return fi.created();
+            return fi.birthTime();
         case ModifiedDateRole:
             return fi.lastModified();
         case FileSizeRole: {
@@ -246,7 +251,7 @@ void DirModel::setPath(const QString &pathName)
     endResetModel();
 
     // TODO: we need to set a spinner active before we start getting results from DirListWorker
-    DirListWorker *dlw = new DirListWorker(pathName);
+    DirListWorker *dlw = new DirListWorker(pathName, mShowHiddenFiles);
     connect(dlw, SIGNAL(itemsAdded(QVector<QFileInfo>)), SLOT(onItemsAdded(QVector<QFileInfo>)));
     connect(dlw, SIGNAL(workerFinished()), SLOT(onResultsFetched()));
     ioWorkerThread()->addRequest(dlw);
@@ -400,6 +405,20 @@ void DirModel::setShowDirectories(bool showDirectories)
     mShowDirectories = showDirectories;
     refresh();
     emit showDirectoriesChanged();
+}
+
+bool DirModel::showHiddenFiles() const
+{
+    return mShowHiddenFiles;
+}
+
+void DirModel::setShowHiddenFiles(bool showHiddenFiles)
+{
+    if(showHiddenFiles != mShowHiddenFiles) {
+        mShowHiddenFiles = showHiddenFiles;
+        refresh();
+        emit showHiddenFilesChanged();
+    }
 }
 
 DirModel::FilterMode DirModel::filterMode() const

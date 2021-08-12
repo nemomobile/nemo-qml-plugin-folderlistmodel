@@ -112,6 +112,10 @@ public:
     bool showDirectories() const;
     void setShowDirectories(bool showDirectories);
 
+    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
+    bool showHiddenFiles() const;
+    void setShowHiddenFiles(bool showHiddenFiles);
+
     Q_PROPERTY(FilterMode filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
     FilterMode filterMode() const;
     void setFilterMode(FilterMode mode);
@@ -128,6 +132,7 @@ signals:
     void filterModeChanged();
     void nameFiltersChanged();
     void showDirectoriesChanged();
+    void showHiddenFilesChanged();
     void pathChanged();
     void error(const QString &errorTitle, const QString &errorMessage);
 
@@ -139,6 +144,7 @@ private:
     QStringList mNameFilters;
     bool mShowDirectories;
     bool mAwaitingResults;
+    bool mShowHiddenFiles;
     QString mCurrentDir;
     QVector<QFileInfo> mDirectoryContents;
 };
