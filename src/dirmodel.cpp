@@ -62,7 +62,7 @@ public:
     {
         qDebug() << Q_FUNC_INFO << "Running on: " << QThread::currentThreadId();
 
-        QDirIterator it(mPathName, QDir::AllDirs | QDir::Hidden | QDir::NoDotAndDotDot);
+        QDirIterator it(mPathName, QDir::AllDirs | QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot);
         QVector<QFileInfo> directoryContents;
 
         while (it.hasNext()) {
