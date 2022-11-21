@@ -42,6 +42,7 @@
 class DirModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
     Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged)
     Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
@@ -77,7 +78,7 @@ public:
 
     DirModel(QObject *parent = 0);
 
-    int rowCount(const QModelIndex &index) const
+    int rowCount(const QModelIndex &index = QModelIndex()) const
     {
         if (index.parent() != QModelIndex())
             return 0;
@@ -126,6 +127,7 @@ public slots:
     void onItemsAdded(const QVector<QFileInfo> &newFiles);
     void onResultsFetched();
 signals:
+    void countChanged();
     void awaitingResultsChanged();
     void filterModeChanged();
     void nameFiltersChanged();
