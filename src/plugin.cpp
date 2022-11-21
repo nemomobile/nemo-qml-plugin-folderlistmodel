@@ -44,6 +44,8 @@ void NemoFolderListModelPlugin::initializeEngine(QQmlEngine *engine, const char 
 void NemoFolderListModelPlugin::registerTypes(const char *uri)
 {
     Q_ASSERT(uri == QLatin1String("org.nemomobile.folderlistmodel"));
-    qmlRegisterType<DirModel>(uri, 1, 0, "FolderListModel");
+    qmlRegisterType<DirModel>(uri, 2, 0, "FolderListModel");
+    qmlRegisterType<DirSelection>(uri, 2, 0, "FolderListSelection");
+    qmlRegisterType<SmbUserShare>(uri, 2, 0, "FolderListSmbUserShare");
 }
 

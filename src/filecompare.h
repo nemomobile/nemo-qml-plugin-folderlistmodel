@@ -1,5 +1,7 @@
-/*
- * Copyright (C) 2012 Robin Burchell <robin+nemo@viroteck.net>
+/**************************************************************************
+ *
+ * Copyright 2013 Canonical Ltd.
+ * Copyright 2013 Carlos J Mazieri <carlos.mazieri@gmail.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -27,30 +29,26 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+ *
+ * File: filecompare.h
+ * Date: 6/25/2013
  */
 
-#ifndef NEMO_QML_PLUGINS_FOLDERLISTMODEL
-#define NEMO_QML_PLUGINS_FOLDERLISTMODEL
+#ifndef FILECOMPARE_H
+#define FILECOMPARE_H
 
-#include <QtGlobal>
+class DirItemInfo;
 
-#include <QQmlComponent>
-#include <QQmlEngine>
-#include <QQmlContext>
-#include <QQmlExtensionPlugin>
+typedef bool  (*CompareFunction)(const DirItemInfo &a, const DirItemInfo &b);
 
-#include "dirmodel.h"
-#include "dirselection.h"
-#include "smbusershare.h"
+bool fileCompareExists(const DirItemInfo &a, const DirItemInfo &b);
+bool fileCompareAscending(const DirItemInfo &a, const DirItemInfo &b);
+bool fileCompareDescending(const DirItemInfo &a, const DirItemInfo &b);
 
-class Q_DECL_EXPORT NemoFolderListModelPlugin  : public QQmlExtensionPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.nemomobile.folderlistmodel")
+bool dateCompareDescending(const DirItemInfo &a, const DirItemInfo &b);
+bool dateCompareAscending(const DirItemInfo &a, const DirItemInfo &b);
 
-public:
-    void initializeEngine(QQmlEngine *engine, const char *uri);
-    void registerTypes(const char *uri);
-};
+bool sizeCompareDescending(const DirItemInfo &a, const DirItemInfo &b);
+bool sizeCompareAscending(const DirItemInfo &a, const DirItemInfo &b);
 
-#endif // NEMO_QML_PLUGINS_FOLDERLISTMODEL
+#endif // FILECOMPARE_H

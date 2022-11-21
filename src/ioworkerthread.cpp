@@ -62,3 +62,8 @@ bool IOWorkerThread::addRequest(IORequest *request)
     mWorker.addRequest(request);
     return true;
 }
+
+void IOWorkerThread::stop()
+{
+    mWorker.stopWorking();
+}

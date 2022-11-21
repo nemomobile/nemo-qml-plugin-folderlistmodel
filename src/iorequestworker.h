@@ -51,11 +51,14 @@ public:
 
     void exit();
 
+    void stopWorking();
+
 private:
     QMutex mMutex;
     QWaitCondition mWaitCondition;
     QList<IORequest *> mRequests;
     bool mTimeToQuit;
+    bool mStopAction;
 };
 
 #endif // IOREQUESTWORKER_H

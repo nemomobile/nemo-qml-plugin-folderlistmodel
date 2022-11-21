@@ -44,6 +44,7 @@ public:
     explicit IOWorkerThread(QObject *parent = 0);
     virtual ~IOWorkerThread();
     bool addRequest(IORequest *request);
+    void stop();
 
 private:
     IORequestWorker mWorker;
