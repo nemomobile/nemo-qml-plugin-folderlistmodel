@@ -42,6 +42,13 @@
 class DirModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
+    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged)
+    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
+    Q_PROPERTY(bool showDirectories READ showDirectories WRITE setShowDirectories NOTIFY showDirectoriesChanged)
+    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
+    Q_PROPERTY(FilterMode filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
+    Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
 
     Q_ENUMS(FilterMode)
 
@@ -89,39 +96,30 @@ public:
         setPath(path());
     }
 
-    Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged)
     inline QString path() const { return mCurrentDir; }
 
-    Q_PROPERTY(QString parentPath READ parentPath NOTIFY pathChanged)
     QString parentPath() const;
 
     Q_INVOKABLE QString homePath() const;
 
-    Q_PROPERTY(bool awaitingResults READ awaitingResults NOTIFY awaitingResultsChanged)
     bool awaitingResults() const;
 
     void setPath(const QString &pathName);
 
     Q_INVOKABLE void rm(const QStringList &paths);
-
     Q_INVOKABLE bool rename(int row, const QString &newName);
-
     Q_INVOKABLE void mkdir(const QString &newdir);
 
-    Q_PROPERTY(bool showDirectories READ showDirectories WRITE setShowDirectories NOTIFY showDirectoriesChanged)
     bool showDirectories() const;
     void setShowDirectories(bool showDirectories);
 
-    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
     bool showHiddenFiles() const;
     void setShowHiddenFiles(bool showHiddenFiles);
 
-    Q_PROPERTY(FilterMode filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
     FilterMode filterMode() const;
     void setFilterMode(FilterMode mode);
 
-    Q_PROPERTY(QStringList nameFilters READ nameFilters WRITE setNameFilters NOTIFY nameFiltersChanged)
-    QStringList nameFilters() const;
+   QStringList nameFilters() const;
     void setNameFilters(const QStringList &nameFilters);
 
 public slots:
